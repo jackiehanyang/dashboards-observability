@@ -25,7 +25,7 @@
  *   - `AlertManagerEndTime`   — date-math string for picker end.
  */
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { EuiLink, EuiTab, EuiTabs } from '@elastic/eui';
+import { EuiCallOut, EuiLink, EuiTab, EuiTabs } from '@elastic/eui';
 import { i18n } from '@osd/i18n';
 import { FormattedMessage } from '@osd/i18n/react';
 import { toMountPoint } from '../../../../../src/plugins/opensearch_dashboards_react/public';
@@ -116,7 +116,9 @@ type AdResourceLifecycleAction = 'start' | 'stop';
  * live on a Prometheus datasource the user just unchecked silently
  * shows zero matches.
  */
-export function parseAlarmsHashRoute(hash: string): {
+export function parseAlarmsHashRoute(
+  hash: string
+): {
   tab?: TabId;
   q?: string;
   ds?: string;
@@ -1119,10 +1121,10 @@ export const AlarmsPage: React.FC<AlarmsPageProps> = ({
       sev === 'critical' || sev === 'high' || sev === 'medium' || sev === 'low'
         ? sev
         : sev === 'warning'
-          ? 'medium'
-          : sev === 'page'
-            ? 'critical'
-            : 'info';
+        ? 'medium'
+        : sev === 'page'
+        ? 'critical'
+        : 'info';
     // Adapt the flyout's form shape to the PrometheusFormState that
     // formStateToRule understands, for the optimistic table row
     const promForm: PrometheusFormState = {
@@ -1471,11 +1473,22 @@ export const AlarmsPage: React.FC<AlarmsPageProps> = ({
 
   return (
     <div data-test-subj="alertManagerPage" className="altPageRoot">
-      {/* Page-top banner callouts (errors, alerting-plugin missing,           */}
-      {/* per-datasource unreachable, alerts truncation, Prom legacy fallback) */}
-      {/* have been migrated to toasts — see `useAlertingPageToasts`. Per-DS   */}
-      {/* connection errors are ALSO surfaced next to the affected row in the  */}
-      {/* datasource facet via `datasourceErrorMapByName`.                     */}
+      {datasourceIssues.length > 0 && (
+        <EuiCallOut
+          title={i18n.translate('observability.alerting.alarmsPage.warningCallout.title', {
+            defaultMessage: 'Some datasources could not be reached',
+          })}
+          color="warning"
+          iconType="alert"
+          size="s"
+        >
+          {datasourceIssues.map((w) => (
+            <p key={w.datasourceId}>
+              <strong>{w.datasourceName}</strong>: {w.error}
+            </p>
+          ))}
+        </EuiCallOut>
+      )}
       <EuiTabs data-test-subj="alertManagerTabs">
         {tabs.map((t) => (
           <EuiTab
